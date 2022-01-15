@@ -1,8 +1,8 @@
 import os
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, flash, render_template, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 
-UPLOAD_FOLDER = '/path/to/the/uploads'
+UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
@@ -15,6 +15,9 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+
+#references: https://flask.palletsprojects.com/en/2.0.x/patterns/fileuploads/
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
@@ -35,12 +38,15 @@ def upload_file():
             return redirect(url_for('download_file', name=filename))
     return
 
+@app.route('/uploads/<name>')
+def download_file(name):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], name)
+
 @app.route("/")
 def hello():
-    return "Hello World!"
+    return render_template('index.html')
 
 if __name__ == "__main__":
     # use of on-the-fly certificates for HTTPS
-    app.run(ssl_context='adhoc')
-    app.run(debug=True)
+    app.run(ssl_context='adhoc', debug = True)
         
