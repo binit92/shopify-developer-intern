@@ -12,10 +12,12 @@
     {% else %}
       
          </table>
-    {% endif %}
-   
+    {% endif %}      
+
     <form action="https://localhost:5000/upload" method=post enctype=multipart/form-data>
       <input type="file" name="file" multiple="multiple">
+      <input type="checkbox" id="p_checkbox" name="p_checkbox" value="private">
+      <label for="p_checkbox"> private image </label><br>
       <input type=submit value=Upload>
     </form>
   
