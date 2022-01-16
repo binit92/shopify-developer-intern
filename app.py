@@ -92,6 +92,10 @@ def index():
             print("error in getting all image details ")
         return render_template('index.html', all_image = all_image)
 
+@app.route('/show/<name>')
+def show(name):
+    print("show: ", name)
+    return redirect(url_for('download_file', name=name))
 
 if __name__ == "__main__":
     # use of on-the-fly certificates for HTTPS
