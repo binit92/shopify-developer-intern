@@ -69,16 +69,29 @@ def upload_file():
                     print("db committed")
                 except:
                     print("error occurred while saving into db")
-        return "Images have been uploaded" , 200
+        #return "Images have been uploaded" , 200
+        return redirect('/')
     return
 
 @app.route('/uploads/<name>')
 def download_file(name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
-@app.route("/")
+@app.route("/" , methods = ['POST', 'GET'])
 def index():
-    return render_template('index.html')
+    #print("index: ")
+    if request.method == 'POST':
+        #print("POST request")
+        return redirect('/')
+    else:
+        try:
+            all_image = Img.query.all()
+            #for i in all_image:
+            #    print(i.name, i.file_location, i.private_img)
+        except:
+            print("error in getting all image details ")
+        return render_template('index.html', all_image = all_image)
+
 
 if __name__ == "__main__":
     # use of on-the-fly certificates for HTTPS

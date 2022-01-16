@@ -6,20 +6,46 @@
 
 {% block body %}
 <div class ="content">
-    <h1 style="text-align: center">Image Repository </h1>
-    {% if all_inventory|length < 1 %}
+  <h1 style="text-align: center">Image Repository </h1>
+
+  <form action="https://localhost:5000/upload" method=post enctype=multipart/form-data>
+    <input type="file" name="file" multiple="multiple">
+    <input type="checkbox" name="p_checkbox" value="private">
+    <label for="p_checkbox"> private image </label><br>
+    <input type=submit value=Upload>
+  </form>
+  
+  
+    {% if all_image|length < 1 %}
     <h4style="text-align: center"> There is nothing in inventory. Add one image below !</h4>
     {% else %}
-      
+        
+        <table>
+            <tr>        
+                <th>Name</th>
+                <th>Location</th>
+                <th>Permission</th>
+                <th>
+                    <a href="/export">Export</a>
+                </th>
+            </tr>
+
+            {% for img in all_image %}
+                <tr>
+                    <td>{{ img.name }}</td>
+                    <td>{{ img.file_location }}</td>
+                    <td>{{ img.private_img }}</td>
+                    <td>
+                        <a href="/show/{{img.id}}">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+
          </table>
+
     {% endif %}      
 
-    <form action="https://localhost:5000/upload" method=post enctype=multipart/form-data>
-      <input type="file" name="file" multiple="multiple">
-      <input type="checkbox" id="p_checkbox" name="p_checkbox" value="private">
-      <label for="p_checkbox"> private image </label><br>
-      <input type=submit value=Upload>
-    </form>
+    
   
 </div>
 {% endblock %}
