@@ -2,6 +2,8 @@ import os
 from wsgiref.util import request_uri
 from flask import Flask, flash, render_template, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
+from db import db_init, db
+from models import Img
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -11,12 +13,15 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # maximum size is 16MB
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 
+# SQLAlchemy config. Read more: https://flask-sqlalchemy.palletsprojects.com/en/2.x/
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///img.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db_init(app)
+
 # only allowed types are png, jpg, jpeg and gif
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
 
 #references: https://flask.palletsprojects.com/en/2.0.x/patterns/fileuploads/
 
@@ -27,9 +32,15 @@ def upload_file():
         if 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
+        # checkbox for private/public permission
+        private_list = request.form.getlist('p_checkbox')
+        print("--> checkbox: ", private_list)
+        private = False
+        if "private" in private_list:
+            private = True
 
         files = request.files.getlist("file")
-        print("files: ", files)
+        print("--> files: ", files)
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
         for file in files:
@@ -38,8 +49,26 @@ def upload_file():
                 return redirect(request.url)
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                print("--> path is : ", path)
+                print("--> private: ", private)
+                file.save(path)
                 #return redirect(url_for('download_file', name=filename))
+
+                # save entries into db
+                try:
+                    print("filename: ", filename)
+                    print("mimetype: ", file.mimetype)
+                    print("path: ", path)
+                    print("private: ",private)
+                    img = Img(name = filename,mimetype = file.mimetype, file_location = path, private_img = private )
+                    print(img)
+                    db.session.add(img)
+                    print("add image")
+                    db.session.commit()
+                    print("db committed")
+                except:
+                    print("error occurred while saving into db")
         return "Images have been uploaded" , 200
     return
 
@@ -48,7 +77,7 @@ def download_file(name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
 @app.route("/")
-def hello():
+def index():
     return render_template('index.html')
 
 if __name__ == "__main__":
